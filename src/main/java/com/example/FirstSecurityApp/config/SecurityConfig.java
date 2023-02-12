@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -18,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Bean
@@ -31,18 +33,17 @@ public class SecurityConfig {
 @Bean
 public SecurityFilterChain configure(HttpSecurity httpSecurity) throws Exception {
     httpSecurity
-            .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/auth/login").permitAll()
-                    .requestMatchers("/auth/registration").permitAll()
-                    .anyRequest().authenticated()
+                    .requestMatchers("/admin").hasRole("ADMIN")
+                    .requestMatchers("/auth/login", "/auth/registration","/error").permitAll()
+                    .anyRequest().hasAnyRole("USER","ADMIN")
             )
             .formLogin(form -> form
                     .loginPage("/auth/login")
                     .permitAll()
             )
             .logout(logout -> logout
-                    .logoutUrl("/auth/logout")
+                    .logoutUrl("/logout")
                     .logoutSuccessUrl("/hello")
                     .invalidateHttpSession(true)
             );
